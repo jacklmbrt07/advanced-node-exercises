@@ -50,7 +50,7 @@ myDB(async (client) => {
       }
     );
 
-  app.route("/profile").get((req, res) => {
+  app.route("/profile").get(ensureAuthenticated, (req, res) => {
     res.render(process.cwd() + "/views/pug/profile");
   });
 
@@ -65,11 +65,17 @@ myDB(async (client) => {
   });
   passport.use(
     new LocalStrategy(function (username, password, done) {
-      myDataBase.findOne({ username }, (err, user) => {
-        console.log(`User ${username} attempted to log in.`);
-        if (err) return done(err);
-        if (!user) return done(null, false);
-        if (password !== user.password) return done(null, false);
+      myDataBase.findOne({ username: username }, function (err, user) {
+        console.log("User " + username + " attempted to log in.");
+        if (err) {
+          return done(err);
+        }
+        if (!user) {
+          return done(null, false);
+        }
+        if (password !== user.password) {
+          return done(null, false);
+        }
         return done(null, user);
       });
     })
@@ -80,6 +86,13 @@ myDB(async (client) => {
     res.render("pug", { title: e, message: "Unable to login" });
   });
 });
+
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect("/");
+}
 
 // app.listen out here...
 
