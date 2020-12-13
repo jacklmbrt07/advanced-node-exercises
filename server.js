@@ -42,7 +42,15 @@ myDB(async (client) => {
     console.log("A user has connected");
     ++currentUsers;
     io.emit("user count", currentUsers);
+
+    socket.on('disconnect', () => {
+      console.log('a user has disconnected');
+      --currentUsers;
+      io.emit('user count', currentUsers)
+    })
   });
+
+
 }).catch((e) => {
   app.route("/").get((req, res) => {
     res.render("pug", { title: e, message: "Unable to login" });
